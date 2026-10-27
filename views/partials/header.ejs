@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Robótica na Prática</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 font-sans flex flex-col min-h-screen">
+  <header class="bg-indigo-600 text-white shadow-md">
+    <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center w-full">
+      <a href="/" class="flex items-center gap-2 text-xl font-bold tracking-tight">
+        🤖 Robótica na Prática
+      </a>
+      <nav class="flex items-center gap-4">
+        <a href="/" class="hover:underline text-sm font-medium">Início</a>
+        <% if (typeof isAdmin !== 'undefined' && isAdmin) { %>
+          <a href="/admin" class="bg-indigo-700 hover:bg-indigo-800 px-3 py-1.5 rounded-lg text-sm font-medium">Painel Admin</a>
+          <a href="/admin/logout" class="text-indigo-200 hover:text-white text-sm">Sair</a>
+        <% } %>
+      </nav>
+    </div>
+  </header>
+  <main class="flex-grow max-w-7xl w-full mx-auto px-4 py-8">

@@ -131,7 +131,6 @@
     });
   }
 
-  // Carregar passos existentes na edição ou criar 1 passo em branco no novo
   try {
     const parsedSteps = JSON.parse(existingSteps);
     if (Array.isArray(parsedSteps) && parsedSteps.length > 0) {

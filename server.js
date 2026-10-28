@@ -95,15 +95,12 @@ app.get('/admin', requireAuth, (req, res) => {
 
 app.get('/admin/new', requireAuth, (req, res) => res.render('admin-form', { activity: null }));
 
-// Processar criação de atividade com múltiplos passos e imagens
 app.post('/admin/new', requireAuth, upload.any(), (req, res) => {
   const { title, description, category, age_range, duration, materials, safety } = req.body;
   
-  // Imagem de capa
   const coverFile = req.files ? req.files.find(f => f.fieldname === 'image') : null;
   const image = coverFile ? `/uploads/${coverFile.filename}` : '';
 
-  // Processar Passos
   let stepTexts = req.body.step_text || [];
   if (!Array.isArray(stepTexts)) stepTexts = [stepTexts];
 
@@ -127,7 +124,6 @@ app.get('/admin/edit/:id', requireAuth, (req, res) => {
   });
 });
 
-// Processar edição de atividade
 app.post('/admin/edit/:id', requireAuth, upload.any(), (req, res) => {
   const { title, description, category, age_range, duration, materials, safety, current_image } = req.body;
   

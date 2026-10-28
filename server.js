@@ -6,21 +6,39 @@ const path = require('path');
 const fs = require('fs');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8000; // Alinhado com a porta padrão do Hostless
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
 const SESSION_SECRET = process.env.SESSION_SECRET || 'robotica_secret_key';
 
-const dataDir = path.join(__dirname, 'data');
-const uploadDir = path.join(__dirname, 'public/uploads');
-if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
+// Definindo os diretórios de forma segura e resiliente
+let dataDir = path.join(__dirname, 'data');
+let uploadDir = path.join(__dirname, 'public/uploads');
+
+// Fallback caso a plataforma de hospedagem restrinja escrita na pasta raiz do app
+try {
+  if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
+  fs.writeFileSync(path.join(dataDir, '.write-test'), 'test');
+  fs.unlinkSync(path.join(dataDir, '.write-test'));
+} catch (e) {
+  console.log("Pasta /app/data sem permissão de escrita. Usando fallback /tmp/robotica-data...");
+  dataDir = '/tmp/robotica-data';
+  uploadDir = '/tmp/robotica-uploads';
+  if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
+  if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+// Criar a pasta de uploads caso não exista
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 
+// Configuração do Banco de Dados SQLite
 const dbFile = path.join(dataDir, 'database.db');
+console.log(`Utilizando banco de dados em: ${dbFile}`);
+
 const db = new sqlite3.Database(dbFile, (err) => {
   if (err) {
-    console.error('Erro ao abrir o banco de dados:', err.message);
+    console.error('Erro crítico ao abrir o banco de dados SQLite:', err.message);
   } else {
-    console.log('Conectado ao banco de dados SQLite.');
+    console.log('Conectado com sucesso ao banco de dados SQLite.');
     initDb();
   }
 });
@@ -44,13 +62,14 @@ function initDb() {
       )
     `);
     
-    // Adiciona a coluna dynamically para não perder dados caso a tabela já exista
+    // Adiciona coluna step_images dinamicamente para tabelas existentes
     db.run(`ALTER TABLE activities ADD COLUMN step_images TEXT`, (err) => {
-      // Ignora o erro se a coluna já existir
+      // Ignora erro se a coluna já existir
     });
   });
 }
 
+// Configuração do Multer para Uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, uploadDir),
   filename: (req, file, cb) => {
@@ -63,7 +82,11 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+
+// Servir arquivos estáticos da pasta pública e de uploads secundários
 app.use(express.static(path.join(__dirname, 'public')));
+app.use('/uploads', express.static(uploadDir));
+
 app.use(session({ secret: SESSION_SECRET, resave: false, saveUninitialized: false }));
 
 function requireAuth(req, res, next) {
@@ -73,13 +96,13 @@ function requireAuth(req, res, next) {
 
 app.get('/', (req, res) => {
   db.all('SELECT * FROM activities ORDER BY id DESC', [], (err, activities) => {
-    res.render('index', { activities, categories: [], search: '', category: '', isAdmin: req.session?.isAdmin });
+    res.render('index', { activities: activities || [], categories: [], search: '', category: '', isAdmin: req.session?.isAdmin });
   });
 });
 
 app.get('/activity/:id', (req, res) => {
   db.get('SELECT * FROM activities WHERE id = ?', [req.params.id], (err, activity) => {
-    if (!activity) return res.status(404).render('error', { message: 'Não encontrado' });
+    if (!activity) return res.status(404).render('error', { message: 'Atividade não encontrada' });
     res.render('activity', { activity, isAdmin: req.session?.isAdmin });
   });
 });
@@ -97,18 +120,17 @@ app.get('/admin/logout', (req, res) => req.session.destroy(() => res.redirect('/
 
 app.get('/admin', requireAuth, (req, res) => {
   db.all('SELECT * FROM activities ORDER BY id DESC', [], (err, activities) => {
-    res.render('admin-list', { activities });
+    res.render('admin-list', { activities: activities || [] });
   });
 });
 
 app.get('/admin/new', requireAuth, (req, res) => res.render('admin-form', { activity: null }));
 
-// Salvar Nova Atividade (Aceitando múltiplos arquivos)
 app.post('/admin/new', requireAuth, upload.any(), (req, res) => {
   const { title, description, category, age_range, duration, materials, steps, safety } = req.body;
   
   let image = '';
-  const stepsList = steps.split('|||');
+  const stepsList = steps ? steps.split('|||') : [];
   const stepImagesArray = [];
 
   if (req.files) {
@@ -139,12 +161,11 @@ app.get('/admin/edit/:id', requireAuth, (req, res) => {
   });
 });
 
-// Editar Atividade Existente
 app.post('/admin/edit/:id', requireAuth, upload.any(), (req, res) => {
   const { title, description, category, age_range, duration, materials, steps, safety, current_image } = req.body;
   
   let image = current_image || '';
-  const stepsList = steps.split('|||');
+  const stepsList = steps ? steps.split('|||') : [];
   const stepImagesArray = [];
 
   if (req.files) {
@@ -172,4 +193,4 @@ app.post('/admin/delete/:id', requireAuth, (req, res) => {
   db.run('DELETE FROM activities WHERE id = ?', [req.params.id], () => res.redirect('/admin'));
 });
 
-app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
+app.listen(PORT, () => console.log(`Portal de robótica rodando na porta ${PORT}`));

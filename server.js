@@ -6,87 +6,56 @@ const path = require('path');
 const fs = require('fs');
 
 const app = express();
-const PORT = process.env.PORT || 8000; // Alinhado com a porta padrão do Hostless
+const PORT = process.env.PORT || 3000;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
 const SESSION_SECRET = process.env.SESSION_SECRET || 'robotica_secret_key';
 
-// Definindo os diretórios de forma segura e resiliente
-let dataDir = path.join(__dirname, 'data');
-let uploadDir = path.join(__dirname, 'public/uploads');
-
-// Fallback caso a plataforma de hospedagem restrinja escrita na pasta raiz do app
-try {
-  if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
-  fs.writeFileSync(path.join(dataDir, '.write-test'), 'test');
-  fs.unlinkSync(path.join(dataDir, '.write-test'));
-} catch (e) {
-  console.log("Pasta /app/data sem permissão de escrita. Usando fallback /tmp/robotica-data...");
-  dataDir = '/tmp/robotica-data';
-  uploadDir = '/tmp/robotica-uploads';
-  if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
-  if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-// Criar a pasta de uploads caso não exista
+const dataDir = path.join(__dirname, 'data');
+const uploadDir = path.join(__dirname, 'public/uploads');
+if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 
-// Configuração do Banco de Dados SQLite
 const dbFile = path.join(dataDir, 'database.db');
-console.log(`Utilizando banco de dados em: ${dbFile}`);
-
 const db = new sqlite3.Database(dbFile, (err) => {
   if (err) {
-    console.error('Erro crítico ao abrir o banco de dados SQLite:', err.message);
+    console.error('Erro ao abrir o banco de dados:', err.message);
   } else {
-    console.log('Conectado com sucesso ao banco de dados SQLite.');
+    console.log('Conectado ao banco de dados SQLite.');
     initDb();
   }
 });
 
 function initDb() {
-  db.serialize(() => {
-    db.run(`
-      CREATE TABLE IF NOT EXISTS activities (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        title TEXT NOT NULL,
-        description TEXT NOT NULL,
-        category TEXT NOT NULL,
-        age_range TEXT,
-        duration TEXT,
-        materials TEXT NOT NULL,
-        steps TEXT NOT NULL,
-        step_images TEXT,
-        safety TEXT,
-        image TEXT,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
-    
-    // Adiciona coluna step_images dinamicamente para tabelas existentes
-    db.run(`ALTER TABLE activities ADD COLUMN step_images TEXT`, (err) => {
-      // Ignora erro se a coluna já existir
-    });
-  });
+  db.run(`
+    CREATE TABLE IF NOT EXISTS activities (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      description TEXT NOT NULL,
+      category TEXT NOT NULL,
+      age_range TEXT,
+      duration TEXT,
+      materials TEXT NOT NULL,
+      steps TEXT NOT NULL,
+      safety TEXT,
+      image TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
 }
 
-// Configuração do Multer para Uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, uploadDir),
   filename: (req, file, cb) => {
     cb(null, Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(file.originalname));
   }
 });
-const upload = multer({ storage: storage, limits: { fileSize: 5 * 1024 * 1024 } });
+const upload = multer({ storage: storage, limits: { fileSize: 10 * 1024 * 1024 } });
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-
-// Servir arquivos estáticos da pasta pública e de uploads secundários
 app.use(express.static(path.join(__dirname, 'public')));
-app.use('/uploads', express.static(uploadDir));
-
 app.use(session({ secret: SESSION_SECRET, resave: false, saveUninitialized: false }));
 
 function requireAuth(req, res, next) {
@@ -96,13 +65,13 @@ function requireAuth(req, res, next) {
 
 app.get('/', (req, res) => {
   db.all('SELECT * FROM activities ORDER BY id DESC', [], (err, activities) => {
-    res.render('index', { activities: activities || [], categories: [], search: '', category: '', isAdmin: req.session?.isAdmin });
+    res.render('index', { activities, categories: [], search: '', category: '', isAdmin: req.session?.isAdmin });
   });
 });
 
 app.get('/activity/:id', (req, res) => {
   db.get('SELECT * FROM activities WHERE id = ?', [req.params.id], (err, activity) => {
-    if (!activity) return res.status(404).render('error', { message: 'Atividade não encontrada' });
+    if (!activity) return res.status(404).render('error', { message: 'Não encontrado' });
     res.render('activity', { activity, isAdmin: req.session?.isAdmin });
   });
 });
@@ -120,39 +89,36 @@ app.get('/admin/logout', (req, res) => req.session.destroy(() => res.redirect('/
 
 app.get('/admin', requireAuth, (req, res) => {
   db.all('SELECT * FROM activities ORDER BY id DESC', [], (err, activities) => {
-    res.render('admin-list', { activities: activities || [] });
+    res.render('admin-list', { activities });
   });
 });
 
 app.get('/admin/new', requireAuth, (req, res) => res.render('admin-form', { activity: null }));
 
+// Processar criação de atividade com múltiplos passos e imagens
 app.post('/admin/new', requireAuth, upload.any(), (req, res) => {
-  const { title, description, category, age_range, duration, materials, steps, safety } = req.body;
+  const { title, description, category, age_range, duration, materials, safety } = req.body;
   
-  let image = '';
-  const stepsList = steps ? steps.split('|||') : [];
-  const stepImagesArray = [];
+  // Imagem de capa
+  const coverFile = req.files ? req.files.find(f => f.fieldname === 'image') : null;
+  const image = coverFile ? `/uploads/${coverFile.filename}` : '';
 
-  if (req.files) {
-    const mainImg = req.files.find(f => f.fieldname === 'image');
-    if (mainImg) image = `/uploads/${mainImg.filename}`;
+  // Processar Passos
+  let stepTexts = req.body.step_text || [];
+  if (!Array.isArray(stepTexts)) stepTexts = [stepTexts];
 
-    stepsList.forEach((_, idx) => {
-      const stepImg = req.files.find(f => f.fieldname === `step_image_${idx}`);
-      if (stepImg) {
-        stepImagesArray.push(`/uploads/${stepImg.filename}`);
-      } else {
-        stepImagesArray.push('');
-      }
-    });
-  } else {
-    stepsList.forEach(() => stepImagesArray.push(''));
-  }
+  const stepsData = stepTexts.map((text, idx) => {
+    const stepFile = req.files ? req.files.find(f => f.fieldname === `step_image_${idx}`) : null;
+    return {
+      text: text,
+      image: stepFile ? `/uploads/${stepFile.filename}` : ''
+    };
+  }).filter(s => s.text.trim().length > 0 || s.image !== '');
 
-  const step_images = stepImagesArray.join('|||');
+  const stepsJson = JSON.stringify(stepsData);
 
-  db.run(`INSERT INTO activities (title, description, category, age_range, duration, materials, steps, step_images, safety, image) VALUES (?,?,?,?,?,?,?,?,?,?)`,
-    [title, description, category, age_range, duration, materials, steps, step_images, safety, image], () => res.redirect('/admin'));
+  db.run(`INSERT INTO activities (title, description, category, age_range, duration, materials, steps, safety, image) VALUES (?,?,?,?,?,?,?,?,?)`,
+    [title, description, category, age_range, duration, materials, stepsJson, safety, image], () => res.redirect('/admin'));
 });
 
 app.get('/admin/edit/:id', requireAuth, (req, res) => {
@@ -161,36 +127,36 @@ app.get('/admin/edit/:id', requireAuth, (req, res) => {
   });
 });
 
+// Processar edição de atividade
 app.post('/admin/edit/:id', requireAuth, upload.any(), (req, res) => {
-  const { title, description, category, age_range, duration, materials, steps, safety, current_image } = req.body;
+  const { title, description, category, age_range, duration, materials, safety, current_image } = req.body;
   
-  let image = current_image || '';
-  const stepsList = steps ? steps.split('|||') : [];
-  const stepImagesArray = [];
+  const coverFile = req.files ? req.files.find(f => f.fieldname === 'image') : null;
+  const image = coverFile ? `/uploads/${coverFile.filename}` : current_image;
 
-  if (req.files) {
-    const mainImg = req.files.find(f => f.fieldname === 'image');
-    if (mainImg) image = `/uploads/${mainImg.filename}`;
-  }
+  let stepTexts = req.body.step_text || [];
+  if (!Array.isArray(stepTexts)) stepTexts = [stepTexts];
 
-  stepsList.forEach((_, idx) => {
-    const fileForStep = req.files ? req.files.find(f => f.fieldname === `step_image_${idx}`) : null;
-    if (fileForStep) {
-      stepImagesArray.push(`/uploads/${fileForStep.filename}`);
-    } else {
-      const currentStepImg = req.body[`current_step_image_${idx}`] || '';
-      stepImagesArray.push(currentStepImg);
-    }
-  });
+  let stepExistingImages = req.body.step_existing_image || [];
+  if (!Array.isArray(stepExistingImages)) stepExistingImages = [stepExistingImages];
 
-  const step_images = stepImagesArray.join('|||');
+  const stepsData = stepTexts.map((text, idx) => {
+    const stepFile = req.files ? req.files.find(f => f.fieldname === `step_image_${idx}`) : null;
+    const imgPath = stepFile ? `/uploads/${stepFile.filename}` : (stepExistingImages[idx] || '');
+    return {
+      text: text,
+      image: imgPath
+    };
+  }).filter(s => s.text.trim().length > 0 || s.image !== '');
 
-  db.run(`UPDATE activities SET title=?, description=?, category=?, age_range=?, duration=?, materials=?, steps=?, step_images=?, safety=?, image=? WHERE id=?`,
-    [title, description, category, age_range, duration, materials, steps, step_images, safety, image, req.params.id], () => res.redirect('/admin'));
+  const stepsJson = JSON.stringify(stepsData);
+
+  db.run(`UPDATE activities SET title=?, description=?, category=?, age_range=?, duration=?, materials=?, steps=?, safety=?, image=? WHERE id=?`,
+    [title, description, category, age_range, duration, materials, stepsJson, safety, image, req.params.id], () => res.redirect('/admin'));
 });
 
 app.post('/admin/delete/:id', requireAuth, (req, res) => {
   db.run('DELETE FROM activities WHERE id = ?', [req.params.id], () => res.redirect('/admin'));
 });
 
-app.listen(PORT, () => console.log(`Portal de robótica rodando na porta ${PORT}`));
+app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));

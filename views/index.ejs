@@ -1,55 +1,50 @@
 <%- include('partials/header') %>
 
-<!-- Banner principal -->
-<div class="bg-indigo-50 rounded-2xl p-8 mb-8 text-center md:text-left md:flex justify-between items-center gap-8 border border-indigo-100">
-  <div class="max-w-xl">
-    <h1 class="text-4xl font-extrabold text-gray-900 leading-tight">Projetos de Robótica Práticos e Divertidos! 🛠️⚡</h1>
-    <p class="text-gray-600 mt-2 text-lg">Acesse atividades educacionais passo a passo, pensadas especialmente para inspirar crianças e jovens inventores.</p>
+<section class="bg-white py-12 border-b border-slate-200">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+    <h1 class="text-4xl font-extrabold text-slate-900 tracking-tight sm:text-5xl mb-4">
+      Robótica na Prática
+    </h1>
+    <!-- Aqui está o texto do banner alterado de forma leve e convidativa! -->
+    <p class="text-lg text-slate-600 max-w-2xl mx-auto">
+      Explore projetos práticos e divertidos de robótica para desenvolver sua imaginação e aprender brincando!
+    </p>
   </div>
-  <div class="text-6xl mt-6 md:mt-0">🚀</div>
-</div>
+</section>
 
-<!-- Filtros de Busca -->
-<form action="/" method="GET" class="mb-8 flex flex-col sm:flex-row gap-3">
-  <input type="text" name="search" value="<%= search %>" placeholder="Pesquisar por projeto ou material..." class="flex-grow px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-700 shadow-sm">
-  <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-3 rounded-xl transition shadow-md flex items-center justify-center gap-2">
-    <span>🔍</span> Buscar
-  </button>
-  <% if (search) { %>
-    <a href="/" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium px-4 py-3 rounded-xl flex items-center justify-center transition">Limpar</a>
-  <% } %>
-</form>
-
-<!-- Atividades -->
-<% if (activities.length === 0) { %>
-  <div class="text-center py-12 bg-white rounded-2xl border border-gray-150">
-    <span class="text-5xl">📦</span>
-    <h3 class="text-xl font-bold text-gray-800 mt-4">Nenhuma atividade encontrada</h3>
-    <p class="text-gray-500 mt-1">Que tal tentar buscar por outra palavra-chave?</p>
-  </div>
-<% } else { %>
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-    <% activities.forEach(activity => { %>
-      <div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md border border-gray-200 transition flex flex-col">
-        <% if (activity.image) { %>
-          <img src="<%= activity.image %>" alt="<%= activity.title %>" class="w-full h-48 object-cover">
-        <% } else { %>
-          <div class="w-full h-48 bg-indigo-100 flex items-center justify-center text-5xl">🔧</div>
-        <% } %>
-        <div class="p-6 flex-grow flex flex-col justify-between">
-          <div>
-            <span class="inline-block bg-indigo-50 text-indigo-700 text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wider mb-3"><%= activity.category %></span>
-            <h2 class="text-xl font-bold text-gray-900 mb-2 line-clamp-1"><%= activity.title %></h2>
-            <p class="text-gray-600 text-sm mb-4 line-clamp-3"><%= activity.description %></p>
-          </div>
-          <div class="pt-4 border-t border-gray-100 flex justify-between items-center mt-auto">
-            <span class="text-xs text-gray-500 flex items-center gap-1">⏱️ <%= activity.duration || '60 min' %></span>
-            <a href="/activity/<%= activity.id %>" class="text-indigo-600 hover:text-indigo-800 font-bold text-sm flex items-center gap-1 transition">Ver Passo a Passo &rarr;</a>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+    <% if (activities && activities.length > 0) { %>
+      <% activities.forEach(function(activity) { %>
+        <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm flex flex-col">
+          <% if (activity.image) { %>
+            <img class="h-48 w-full object-cover" src="<%= activity.image %>" alt="<%= activity.title %>">
+          <% } else { %>
+            <div class="h-48 w-full bg-slate-100 flex items-center justify-center text-slate-400">Sem Imagem</div>
+          <% } %>
+          <div class="p-6 flex-grow flex flex-col">
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 self-start mb-3">
+              <%= activity.category %>
+            </span>
+            <h3 class="text-xl font-bold text-slate-900 mb-2"><%= activity.title %></h3>
+            <p class="text-slate-600 text-sm mb-4 line-clamp-3"><%= activity.description %></p>
+            <div class="mt-auto">
+              <a href="/activity/<%= activity.id %>" class="inline-flex w-full items-center justify-center px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 transition">
+                Ver Atividade
+              </a>
+            </div>
           </div>
         </div>
+      <% }); %>
+    <% } else { %>
+      <div class="col-span-full text-center py-12 bg-white rounded-xl border border-dashed border-slate-300">
+        <p class="text-slate-500">Nenhuma atividade cadastrada ainda.</p>
+        <a href="/admin/new" class="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700">
+          Cadastrar Atividade
+        </a>
       </div>
-    <% }) %>
+    <% } %>
   </div>
-<% } %>
+</div>
 
 <%- include('partials/footer') %>

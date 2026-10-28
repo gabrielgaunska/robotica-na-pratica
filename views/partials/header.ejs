@@ -6,19 +6,17 @@
   <title>Robótica na Prática</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-50 font-sans flex flex-col min-h-screen">
-  <header class="bg-indigo-600 text-white shadow-md">
-    <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center w-full">
-      <a href="/" class="flex items-center gap-2 text-xl font-bold tracking-tight">
-        🤖 Robótica na Prática
+<body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col">
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <a href="/" class="flex items-center gap-2">
+        <span class="text-2xl">🤖</span>
+        <span class="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Robótica na Prática</span>
       </a>
       <nav class="flex items-center gap-4">
-        <a href="/" class="hover:underline text-sm font-medium">Início</a>
-        <% if (typeof isAdmin !== 'undefined' && isAdmin) { %>
-          <a href="/admin" class="bg-indigo-700 hover:bg-indigo-800 px-3 py-1.5 rounded-lg text-sm font-medium">Painel Admin</a>
-          <a href="/admin/logout" class="text-indigo-200 hover:text-white text-sm">Sair</a>
-        <% } %>
+        <a href="/" class="text-slate-600 hover:text-slate-900 font-medium">Início</a>
+        <a href="/admin" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition">Painel Admin</a>
       </nav>
     </div>
   </header>
-  <main class="flex-grow max-w-7xl w-full mx-auto px-4 py-8">
+  <main class="flex-grow">

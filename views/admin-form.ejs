@@ -1,150 +1,53 @@
 <%- include('partials/header') %>
-
-<div class="max-w-2xl mx-auto">
-  <div class="flex items-center justify-between mb-6">
-    <h1 class="text-2xl font-bold text-gray-900"><%= activity ? 'Editar Atividade' : 'Nova Atividade' %></h1>
-    <a href="/admin" class="text-sm font-semibold text-gray-500 hover:text-gray-700">&larr; Voltar ao Painel</a>
-  </div>
-
-  <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-    <form action="<%= activity ? '/admin/edit/' + activity.id : '/admin/new' %>" method="POST" enctype="multipart/form-data" class="space-y-6">
-      
+<div class="max-w-3xl mx-auto py-12 px-4">
+  <h1 class="text-3xl font-bold mb-8"><%= activity ? 'Editar Atividade' : 'Nova Atividade' %></h1>
+  <form action="<%= activity ? '/admin/edit/' + activity.id : '/admin/new' %>" method="POST" enctype="multipart/form-data" class="space-y-6 bg-white p-8 border border-slate-200 rounded-2xl shadow-sm">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div>
+        <label class="block text-sm font-semibold mb-1">Título</label>
+        <input type="text" name="title" value="<%= activity ? activity.title : '' %>" required class="w-full border border-slate-300 rounded-lg px-3 py-2">
+      </div>
+      <div>
+        <label class="block text-sm font-semibold mb-1">Categoria</label>
+        <input type="text" name="category" value="<%= activity ? activity.category : '' %>" required class="w-full border border-slate-300 rounded-lg px-3 py-2">
+      </div>
+      <div>
+        <label class="block text-sm font-semibold mb-1">Faixa Etária</label>
+        <input type="text" name="age_range" value="<%= activity ? activity.age_range : '' %>" class="w-full border border-slate-300 rounded-lg px-3 py-2">
+      </div>
+      <div>
+        <label class="block text-sm font-semibold mb-1">Tempo de Execução</label>
+        <input type="text" name="duration" value="<%= activity ? activity.duration : '' %>" class="w-full border border-slate-300 rounded-lg px-3 py-2">
+      </div>
+    </div>
+    <div>
+      <label class="block text-sm font-semibold mb-1">Breve Descrição</label>
+      <textarea name="description" required class="w-full border border-slate-300 rounded-lg px-3 py-2" rows="3"><%= activity ? activity.description : '' %></textarea>
+    </div>
+    <div>
+      <label class="block text-sm font-semibold mb-1">Materiais Necessários</label>
+      <textarea name="materials" required class="w-full border border-slate-300 rounded-lg px-3 py-2" rows="3"><%= activity ? activity.materials : '' %></textarea>
+    </div>
+    <div>
+      <label class="block text-sm font-semibold mb-1">Instruções Passo a Passo</label>
+      <textarea name="steps" required class="w-full border border-slate-300 rounded-lg px-3 py-2" rows="5"><%= activity ? activity.steps : '' %></textarea>
+    </div>
+    <div>
+      <label class="block text-sm font-semibold mb-1">Dicas de Segurança</label>
+      <textarea name="safety" class="w-full border border-slate-300 rounded-lg px-3 py-2" rows="2"><%= activity ? activity.safety : '' %></textarea>
+    </div>
+    <div>
+      <label class="block text-sm font-semibold mb-1">Imagem Ilustrativa</label>
+      <input type="file" name="image" class="w-full">
       <% if (activity && activity.image) { %>
         <input type="hidden" name="current_image" value="<%= activity.image %>">
+        <p class="text-xs text-slate-500 mt-2">Imagem atual: <%= activity.image %></p>
       <% } %>
-
-      <div>
-        <label for="title" class="block text-sm font-medium text-gray-700 mb-1">Título da Atividade *</label>
-        <input type="text" id="title" name="title" required value="<%= activity ? activity.title : '' %>" class="w-full rounded-lg border border-gray-300 p-2.5 shadow-sm">
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div>
-          <label for="category" class="block text-sm font-medium text-gray-700 mb-1">Categoria *</label>
-          <input type="text" id="category" name="category" placeholder="Ex: Elétrica" required value="<%= activity ? activity.category : '' %>" class="w-full rounded-lg border border-gray-300 p-2.5 shadow-sm">
-        </div>
-        <div>
-          <label for="age_range" class="block text-sm font-medium text-gray-700 mb-1">Faixa Etária</label>
-          <input type="text" id="age_range" name="age_range" placeholder="Ex: 8 anos" value="<%= activity ? activity.age_range : '' %>" class="w-full rounded-lg border border-gray-300 p-2.5 shadow-sm">
-        </div>
-        <div>
-          <label for="duration" class="block text-sm font-medium text-gray-700 mb-1">Duração</label>
-          <input type="text" id="duration" name="duration" placeholder="Ex: 50 min" value="<%= activity ? activity.duration : '' %>" class="w-full rounded-lg border border-gray-300 p-2.5 shadow-sm">
-        </div>
-      </div>
-
-      <div>
-        <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Descrição curta *</label>
-        <textarea id="description" name="description" rows="2" required class="w-full rounded-lg border border-gray-300 p-2.5 shadow-sm"><%= activity ? activity.description : '' %></textarea>
-      </div>
-
-      <div>
-        <label for="materials" class="block text-sm font-medium text-gray-700 mb-1">📦 Materiais Necessários *</label>
-        <textarea id="materials" name="materials" rows="3" required placeholder="Escreva os materiais necessários..." class="w-full rounded-lg border border-gray-300 p-2.5 shadow-sm"><%= activity ? activity.materials : '' %></textarea>
-      </div>
-
-      <!-- SEÇÃO DINÂMICA DE PASSOS COM IMAGENS -->
-      <div class="border-t border-gray-100 pt-6">
-        <label class="block text-sm font-medium text-gray-700 mb-2 font-bold">🚀 Passo a Passo (Instruções com Imagens) *</label>
-        
-        <div id="steps-container" class="space-y-4">
-          <!-- Os passos serão gerados aqui dinamicamente -->
-        </div>
-
-        <button type="button" id="add-step-btn" class="mt-4 inline-flex items-center px-4 py-2 border border-indigo-300 rounded-lg text-sm font-medium text-indigo-700 bg-indigo-50 hover:bg-indigo-100">
-          ➕ Adicionar Passo
-        </button>
-      </div>
-
-      <div>
-        <label for="safety" class="block text-sm font-medium text-gray-700 mb-1">⚠️ Instruções de Segurança</label>
-        <textarea id="safety" name="safety" rows="2" class="w-full rounded-lg border border-gray-300 p-2.5 shadow-sm"><%= activity ? activity.safety : '' %></textarea>
-      </div>
-
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1 font-bold">Imagem de Capa do Projeto</label>
-        <input type="file" name="image" accept="image/*" class="w-full text-sm text-gray-500">
-      </div>
-
-      <div class="pt-4 flex gap-3">
-        <button type="submit" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-lg shadow-md">
-          Salvar Atividade
-        </button>
-        <a href="/admin" class="flex-1 text-center border border-gray-300 text-gray-700 py-2.5 rounded-lg hover:bg-gray-50">
-          Cancelar
-        </a>
-      </div>
-    </form>
-  </div>
+    </div>
+    <div class="flex gap-4">
+      <button type="submit" class="bg-blue-600 text-white font-semibold py-2 px-6 rounded-lg hover:bg-blue-700">Salvar</button>
+      <a href="/admin" class="bg-slate-100 text-slate-700 font-semibold py-2 px-6 rounded-lg hover:bg-slate-200">Cancelar</a>
+    </div>
+  </form>
 </div>
-
-<script>
-  const container = document.getElementById('steps-container');
-  const addBtn = document.getElementById('add-step-btn');
-
-  // Recupera passos se estiver editando
-  let initialSteps = [];
-  <% if (activity && activity.steps) { %>
-    try {
-      initialSteps = <%- activity.steps %>;
-    } catch(e) {
-      initialSteps = [];
-    }
-  <% } %>
-
-  function createStepField(text = '', imagePath = '', index) {
-    const stepDiv = document.createElement('div');
-    stepDiv.className = 'step-row bg-gray-50 p-4 rounded-lg border border-gray-200 relative space-y-3';
-    
-    stepDiv.innerHTML = `
-      <div class="flex justify-between items-center border-b border-gray-200 pb-2">
-        <span class="text-sm font-bold text-indigo-600 uppercase">Passo <span class="step-number">${index}</span></span>
-        <button type="button" class="remove-step-btn text-xs text-red-500 hover:text-red-700 font-semibold">Remover</button>
-      </div>
-      <div>
-        <textarea name="step_texts" required class="w-full rounded-md border-gray-300 p-2 shadow-sm text-sm" rows="2" placeholder="Descreva o que fazer neste passo...">${text}</textarea>
-      </div>
-      <div class="flex items-center gap-4">
-        <div class="flex-grow">
-          <label class="block text-xs text-gray-500 mb-1">Foto deste Passo</label>
-          <input type="file" name="step_image_${index - 1}" accept="image/*" class="text-xs text-gray-500">
-          <input type="hidden" name="existing_step_image_${index - 1}" value="${imagePath}">
-        </div>
-        ${imagePath ? `<img src="${imagePath}" class="w-16 h-16 object-cover rounded-md border border-gray-200">` : ''}
-      </div>
-    `;
-
-    stepDiv.querySelector('.remove-step-btn').addEventListener('click', () => {
-      stepDiv.remove();
-      recalculateNumbers();
-    });
-
-    container.appendChild(stepDiv);
-  }
-
-  function recalculateNumbers() {
-    const rows = container.querySelectorAll('.step-row');
-    rows.forEach((row, idx) => {
-      row.querySelector('.step-number').innerText = idx + 1;
-      // Ajusta o index dos names das imagens para alinhar com o array recebido
-      row.querySelector('input[type="file"]').name = `step_image_${idx}`;
-      row.querySelector('input[type="hidden"]').name = `existing_step_image_${idx}`;
-    });
-  }
-
-  addBtn.addEventListener('click', () => {
-    const nextIndex = container.querySelectorAll('.step-row').length + 1;
-    createStepField('', '', nextIndex);
-  });
-
-  // Inicialização
-  if (initialSteps && initialSteps.length > 0) {
-    initialSteps.forEach((step, idx) => {
-      createStepField(step.text, step.image, idx + 1);
-    });
-  } else {
-    createStepField('', '', 1);
-  }
-</script>
-
 <%- include('partials/footer') %>

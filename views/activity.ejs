@@ -1,134 +1,62 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><%= activity.title %> — Robótica na Prática</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+<%- include('partials/header') %>
 
-  <!-- Cabeçalho -->
-  <header class="bg-indigo-600 text-white shadow-md">
-    <div class="w-full max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-      <a href="/" class="text-2xl font-bold tracking-tight hover:opacity-90 flex items-center gap-2">
-        🤖 Robótica na Prática
-      </a>
-      <% if (isAdmin) { %>
-        <div class="flex gap-4 items-center">
-          <a href="/admin" class="bg-indigo-700 hover:bg-indigo-800 px-4 py-2 rounded-lg font-medium text-sm transition">Painel Admin</a>
-          <a href="/admin/logout" class="bg-rose-600 hover:bg-rose-700 px-4 py-2 rounded-lg font-medium text-sm transition">Sair</a>
-        </div>
-      <% } else { %>
-        <a href="/admin/login" class="bg-indigo-700 hover:bg-indigo-800 px-4 py-2 rounded-lg font-medium text-sm transition">Área do Professor</a>
-      <% } %>
-    </div>
-  </header>
+<div class="max-w-4xl mx-auto px-4 py-12">
+  <a href="/" class="text-blue-600 hover:text-blue-800 font-medium inline-flex items-center gap-1 mb-6">
+    &larr; Voltar para a página inicial
+  </a>
 
-  <!-- Conteúdo Principal (Largura Expandida) -->
-  <main class="flex-grow w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-    
-    <!-- Botão Voltar -->
-    <div class="mb-6">
-      <a href="/" class="inline-flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-800 transition">
-        ← Voltar para todas as atividades
-      </a>
-    </div>
+  <article class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+    <% if (activity.image) { %>
+      <img src="<%= activity.image %>" class="w-full h-96 object-cover" alt="<%= activity.title %>">
+    <% } %>
 
-    <!-- Cartão Principal da Atividade -->
-    <article class="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-100">
-      
-      <!-- Imagem de Capa -->
-      <% if (activity.image) { %>
-        <div class="w-full h-80 sm:h-96 bg-slate-200 overflow-hidden">
-          <img src="<%= activity.image %>" alt="<%= activity.title %>" class="w-full h-full object-cover">
-        </div>
-      <% } %>
+    <div class="p-8">
+      <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800 mb-4">
+        <%= activity.category %>
+      </span>
 
-      <div class="p-6 sm:p-10 md:p-12">
-        
-        <!-- Categoria e Detalhes Rápidos -->
-        <div class="flex flex-wrap items-center gap-3 mb-4">
-          <span class="bg-indigo-100 text-indigo-800 text-sm font-semibold px-3 py-1 rounded-full">
-            <%= activity.category %>
-          </span>
-          <% if (activity.age_range) { %>
-            <span class="bg-slate-100 text-slate-700 text-sm font-medium px-3 py-1 rounded-full flex items-center gap-1">
-              👶 Faixa etária: <%= activity.age_range %>
-            </span>
-          <% } %>
-          <% if (activity.duration) { %>
-            <span class="bg-amber-100 text-amber-800 text-sm font-medium px-3 py-1 rounded-full flex items-center gap-1">
-              ⏱️ Duração: <%= activity.duration %>
-            </span>
-          <% } %>
-        </div>
+      <h1 class="text-3xl font-extrabold text-slate-900 mb-4"><%= activity.title %></h1>
 
-        <!-- Título -->
-        <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 mb-6 leading-tight">
-          <%= activity.title %>
-        </h1>
-
-        <!-- Descrição / Objetivo Pedagógico -->
-        <div class="prose max-w-none text-slate-600 text-lg sm:text-xl mb-10 leading-relaxed border-b border-slate-100 pb-8">
-          <h2 class="text-xl font-bold text-slate-900 mb-3">🎯 Objetivo Pedagógico</h2>
-          <p style="white-space: pre-line;"><%= activity.description %></p>
-        </div>
-
-        <!-- Grid de Conteúdo: Materiais vs Passos -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
-          
-          <!-- Coluna da Esquerda: Materiais e Segurança -->
-          <div class="lg:col-span-1 space-y-8">
-            
-            <!-- Materiais -->
-            <div class="bg-slate-50 p-6 rounded-xl border border-slate-200">
-              <h2 class="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
-                🛠️ Materiais Necessários
-              </h2>
-              <div class="text-slate-700 space-y-2" style="white-space: pre-line;">
-                <%= activity.materials %>
-              </div>
-            </div>
-
-            <!-- Segurança (Se houver) -->
-            <% if (activity.safety) { %>
-              <div class="bg-rose-50 border border-rose-200 p-6 rounded-xl">
-                <h2 class="text-xl font-bold text-rose-800 mb-3 flex items-center gap-2">
-                  ⚠️ Orientações de Segurança
-                </h2>
-                <div class="text-rose-700 text-sm" style="white-space: pre-line;">
-                  <%= activity.safety %>
-                </div>
-              </div>
-            <% endif %>
-
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8 bg-slate-50 p-4 rounded-xl border border-slate-100">
+        <% if (activity.age_range) { %>
+          <div>
+            <span class="text-xs text-slate-500 block uppercase font-bold tracking-wider">Faixa Etária</span>
+            <span class="text-slate-800 font-medium"><%= activity.age_range %></span>
           </div>
-
-          <!-- Coluna da Direita: Passo a Passo -->
-          <div class="lg:col-span-2">
-            <h2 class="text-2xl font-bold text-slate-900 mb-6 flex items-center gap-2">
-              📝 Instruções Passo a Passo
-            </h2>
-            <div class="bg-slate-50 p-6 sm:p-8 rounded-xl border border-slate-200 text-slate-700 leading-relaxed text-lg" style="white-space: pre-line;">
-              <%= activity.steps %>
-            </div>
+        <% } %>
+        <% if (activity.duration) { %>
+          <div>
+            <span class="text-xs text-slate-500 block uppercase font-bold tracking-wider">Tempo Estimado</span>
+            <span class="text-slate-800 font-medium"><%= activity.duration %></span>
           </div>
-
-        </div>
-
+        <% } %>
       </div>
-    </article>
 
-  </main>
+      <div class="space-y-6">
+        <div>
+          <h3 class="text-xl font-bold text-slate-900 mb-2">Descrição e Objetivo</h3>
+          <p class="text-slate-700 leading-relaxed"><%= activity.description %></p>
+        </div>
 
-  <!-- Rodapé -->
-  <footer class="bg-slate-900 text-slate-400 py-8 mt-16">
-    <div class="w-full max-w-7xl mx-auto px-6 text-center">
-      <p class="font-medium text-slate-300">Robótica na Prática — Portal de Robótica Educacional Infantil</p>
-      <p class="text-sm mt-2 text-slate-500">Inspirando a próxima geração de inventores.</p>
+        <div>
+          <h3 class="text-xl font-bold text-slate-900 mb-2">Materiais Necessários</h3>
+          <p class="text-slate-700 whitespace-pre-line leading-relaxed"><%= activity.materials %></p>
+        </div>
+
+        <div>
+          <h3 class="text-xl font-bold text-slate-900 mb-2">Passo a Passo de Montagem</h3>
+          <p class="text-slate-700 whitespace-pre-line leading-relaxed"><%= activity.steps %></p>
+        </div>
+
+        <% if (activity.safety) { %>
+          <div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-xl">
+            <h4 class="font-bold text-amber-800 mb-1">Dicas de Segurança</h4>
+            <p class="text-amber-700 text-sm leading-relaxed"><%= activity.safety %></p>
+          </div>
+        <% } %>
+      </div>
     </div>
-  </footer>
+  </article>
+</div>
 
-</body>
-</html>
+<%- include('partials/footer') %>

@@ -1,50 +1,32 @@
 <%- include('partials/header') %>
-
-<section class="bg-white py-12 border-b border-slate-200">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-    <h1 class="text-4xl font-extrabold text-slate-900 tracking-tight sm:text-5xl mb-4">
-      Robótica na Prática
-    </h1>
-    <!-- Aqui está o texto do banner alterado de forma leve e convidativa! -->
-    <p class="text-lg text-slate-600 max-w-2xl mx-auto">
-      Aprenda, construa e crie projetos incríveis! Atividades práticas de robótica pensadas para o 4º e 5º ano. 🛠️🚀
-    </p>
-  </div>
-</section>
-
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-    <% if (activities && activities.length > 0) { %>
-      <% activities.forEach(function(activity) { %>
-        <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm flex flex-col">
-          <% if (activity.image) { %>
-            <img class="h-48 w-full object-cover" src="<%= activity.image %>" alt="<%= activity.title %>">
-          <% } else { %>
-            <div class="h-48 w-full bg-slate-100 flex items-center justify-center text-slate-400">Sem Imagem</div>
-          <% } %>
-          <div class="p-6 flex-grow flex flex-col">
-            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 self-start mb-3">
-              <%= activity.category %>
-            </span>
-            <h3 class="text-xl font-bold text-slate-900 mb-2"><%= activity.title %></h3>
-            <p class="text-slate-600 text-sm mb-4 line-clamp-3"><%= activity.description %></p>
-            <div class="mt-auto">
-              <a href="/activity/<%= activity.id %>" class="inline-flex w-full items-center justify-center px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 transition">
-                Ver Atividade
-              </a>
-            </div>
-          </div>
-        </div>
-      <% }); %>
-    <% } else { %>
-      <div class="col-span-full text-center py-12 bg-white rounded-xl border border-dashed border-slate-300">
-        <p class="text-slate-500">Nenhuma atividade cadastrada ainda.</p>
-        <a href="/admin/new" class="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700">
-          Cadastrar Atividade
-        </a>
-      </div>
-    <% } %>
-  </div>
+<div class="text-center py-8 mb-8 bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+  <h1 class="text-3xl sm:text-4xl font-extrabold text-indigo-900 mb-3">Robótica na Prática</h1>
+  <p class="text-slate-600 text-base sm:text-lg max-w-2xl mx-auto">Acesse atividades educacionais passo a passo, pensadas especialmente para inspirar crianças e jovens inventores.</p>
 </div>
 
+<% if (activities.length === 0) { %>
+  <div class="text-center py-12 bg-white rounded-xl border border-slate-200">
+    <p class="text-slate-500 text-lg">Nenhuma atividade cadastrada no momento.</p>
+  </div>
+<% } else { %>
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <% activities.forEach(act => { %>
+      <div class="bg-white rounded-2xl shadow-md overflow-hidden border border-slate-200 flex flex-col hover:shadow-lg transition">
+        <% if (act.image) { %>
+          <img src="<%= act.image %>" alt="<%= act.title %>" class="w-full h-52 object-cover">
+        <% } else { %>
+          <div class="w-full h-52 bg-indigo-100 flex items-center justify-center text-indigo-400 font-bold text-lg">Sem Imagem</div>
+        <% } %>
+        <div class="p-5 flex-grow flex flex-col justify-between">
+          <div>
+            <span class="inline-block bg-indigo-100 text-indigo-800 text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wider mb-2"><%= act.category %></span>
+            <h3 class="text-xl font-bold text-slate-800 mb-2"><%= act.title %></h3>
+            <p class="text-slate-600 text-sm line-clamp-3 mb-4"><%= act.description %></p>
+          </div>
+          <a href="/activity/<%= act.id %>" class="block text-center bg-indigo-600 text-white font-semibold py-2.5 rounded-lg hover:bg-indigo-700 transition">Ver Atividade Completa →</a>
+        </div>
+      </div>
+    <% }) %>
+  </div>
+<% } %>
 <%- include('partials/footer') %>

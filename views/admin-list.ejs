@@ -1,36 +1,39 @@
 <%- include('partials/header') %>
-<div class="max-w-7xl mx-auto px-4 py-12">
-  <div class="flex justify-between items-center mb-8">
-    <h1 class="text-3xl font-bold">Painel de Atividades</h1>
-    <div class="flex gap-2">
-      <a href="/admin/new" class="bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700">Nova Atividade</a>
-      <a href="/admin/logout" class="bg-slate-200 text-slate-700 px-4 py-2 rounded-lg font-semibold hover:bg-slate-300">Sair</a>
-    </div>
-  </div>
-  <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
-    <table class="w-full text-left">
-      <thead class="bg-slate-50 border-b border-slate-200">
-        <tr>
-          <th class="p-4 font-semibold">Título</th>
-          <th class="p-4 font-semibold">Categoria</th>
-          <th class="p-4 font-semibold text-right">Ações</th>
+<div class="flex justify-between items-center mb-6">
+  <h1 class="text-2xl sm:text-3xl font-bold text-slate-800">Painel do Professor</h1>
+  <a href="/admin/new" class="bg-green-600 hover:bg-green-700 text-white font-bold px-4 py-2.5 rounded-lg shadow transition">+ Nova Atividade</a>
+</div>
+
+<div class="bg-white rounded-xl shadow border border-slate-200 overflow-x-auto">
+  <table class="w-full text-left border-collapse">
+    <thead>
+      <tr class="bg-slate-100 border-b border-slate-200 text-slate-700 font-bold text-sm">
+        <th class="p-4">Capa</th>
+        <th class="p-4">Título</th>
+        <th class="p-4">Categoria</th>
+        <th class="p-4 text-right">Ações</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-slate-200">
+      <% if (activities.length === 0) { %>
+        <tr><td colspan="4" class="p-6 text-center text-slate-500">Nenhuma atividade cadastrada ainda.</td></tr>
+      <% } %>
+      <% activities.forEach(act => { %>
+        <tr class="hover:bg-slate-50">
+          <td class="p-4 w-20">
+            <% if (act.image) { %> <img src="<%= act.image %>" class="w-14 h-14 object-cover rounded-lg"> <% } else { %> <div class="w-14 h-14 bg-slate-200 rounded-lg flex items-center justify-center text-xs text-slate-500">Sem Foto</div> <% } %>
+          </td>
+          <td class="p-4 font-bold text-slate-800"><%= act.title %></td>
+          <td class="p-4"><span class="bg-indigo-100 text-indigo-800 text-xs px-2.5 py-1 rounded-full font-semibold"><%= act.category %></span></td>
+          <td class="p-4 text-right space-x-2">
+            <a href="/admin/edit/<%= act.id %>" class="inline-block bg-amber-500 text-white text-xs font-bold px-3 py-1.5 rounded-md hover:bg-amber-600">Editar</a>
+            <form action="/admin/delete/<%= act.id %>" method="POST" class="inline" onsubmit="return confirm('Excluir esta atividade?');">
+              <button class="bg-red-600 text-white text-xs font-bold px-3 py-1.5 rounded-md hover:bg-red-700">Excluir</button>
+            </form>
+          </td>
         </tr>
-      </thead>
-      <tbody class="divide-y divide-slate-100">
-        <% activities.forEach(function(act) { %>
-          <tr>
-            <td class="p-4 font-medium"><%= act.title %></td>
-            <td class="p-4 text-slate-500"><%= act.category %></td>
-            <td class="p-4 text-right flex justify-end gap-2">
-              <a href="/admin/edit/<%= act.id %>" class="bg-slate-100 text-slate-700 hover:bg-slate-200 px-3 py-1 rounded text-sm font-medium">Editar</a>
-              <form action="/admin/delete/<%= act.id %>" method="POST" onsubmit="return confirm('Deseja excluir esta atividade?')">
-                <button type="submit" class="bg-red-50 text-red-600 hover:bg-red-100 px-3 py-1 rounded text-sm font-medium">Excluir</button>
-              </form>
-            </td>
-          </tr>
-        <% }); %>
-      </tbody>
-    </table>
-  </div>
+      <% }) %>
+    </tbody>
+  </table>
 </div>
 <%- include('partials/footer') %>

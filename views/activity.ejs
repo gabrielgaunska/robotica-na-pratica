@@ -1,82 +1,81 @@
 <%- include('partials/header') %>
 
-<a href="/" class="inline-block mb-6 text-indigo-600 font-bold hover:underline">← Voltar para o início</a>
-
-<article class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8">
-  <span class="text-xs font-bold px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full inline-block mb-3">
-    <%= activity.category %>
-  </span>
-  <h1 class="text-3xl md:text-4xl font-extrabold text-slate-900 mb-4"><%= activity.title %></h1>
-
-  <div class="flex flex-wrap gap-4 text-sm text-slate-600 mb-6 border-b border-slate-100 pb-4">
-    <% if (activity.age_range) { %>
-      <div><strong>Faixa etária:</strong> <%= activity.age_range %></div>
-    <% } %>
-    <% if (activity.duration) { %>
-      <div><strong>Tempo estimado:</strong> <%= activity.duration %></div>
-    <% } %>
-  </div>
-
-  <% if (activity.image) { %>
-    <div class="mb-8 rounded-2xl overflow-hidden border border-slate-200 shadow-sm max-h-[450px]">
-      <img src="<%= activity.image %>" alt="<%= activity.title %>" class="w-full h-full object-cover">
+<div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-6 md:p-8 max-w-4xl mx-auto">
+  <div class="flex flex-col gap-6">
+    <!-- Banner Principal -->
+    <div class="w-full h-64 sm:h-96 rounded-2xl overflow-hidden bg-slate-100">
+      <% if (activity.image) { %>
+        <img src="<%= activity.image %>" class="w-full h-full object-cover" alt="<%= activity.title %>">
+      <% } else { %>
+        <div class="w-full h-full flex items-center justify-center text-slate-400 text-7xl">🤖</div>
+      <% } %>
     </div>
-  <% } %>
 
-  <div class="mb-8">
-    <h2 class="text-2xl font-bold text-slate-900 mb-2">Objetivo e Descrição</h2>
-    <p class="text-slate-700 leading-relaxed text-lg"><%= activity.description %></p>
-  </div>
-
-  <div class="mb-8 bg-amber-50 border border-amber-200 rounded-2xl p-6">
-    <h2 class="text-xl font-bold text-amber-900 mb-3 flex items-center gap-2">🛠️ Materiais Necessários</h2>
-    <div class="text-amber-800 whitespace-pre-line leading-relaxed text-base"><%= activity.materials %></div>
-  </div>
-
-  <% if (activity.safety) { %>
-    <div class="mb-8 bg-red-50 border border-red-200 rounded-2xl p-6">
-      <h2 class="text-xl font-bold text-red-900 mb-2 flex items-center gap-2">⚠️ Orientações de Segurança</h2>
-      <p class="text-red-800 text-base"><%= activity.safety %></p>
+    <!-- Título e Infos -->
+    <div>
+      <span class="bg-indigo-100 text-indigo-800 text-xs font-bold px-3 py-1.5 rounded-full uppercase tracking-wider"><%= activity.category %></span>
+      <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-900 mt-3 mb-4"><%= activity.title %></h1>
+      
+      <div class="flex flex-wrap gap-4 text-sm text-slate-600 border-b border-t border-slate-100 py-4 mb-6">
+        <span class="flex items-center gap-1.5"><strong>👶 Idade Recomendada:</strong> <%= activity.age_range || 'Livre' %></span>
+        <span class="flex items-center gap-1.5"><strong>⏱️ Tempo Estimado:</strong> <%= activity.duration || 'Variável' %></span>
+      </div>
     </div>
-  <% } %>
 
-  <div>
-    <h2 class="text-2xl font-bold text-slate-900 mb-6">Passo a Passo da Montagem</h2>
-    
-    <% 
-      let stepList = [];
-      try {
-        stepList = JSON.parse(activity.steps);
-      } catch (e) {
-        stepList = activity.steps ? activity.steps.split('\n').filter(s => s.trim().length > 0).map(s => ({ text: s, image: '' })) : [];
-      }
-    %>
+    <!-- Descrição e Objetivo -->
+    <div>
+      <h2 class="text-xl font-bold text-slate-800 mb-2">Sobre este Projeto</h2>
+      <p class="text-slate-600 leading-relaxed"><%= activity.description %></p>
+    </div>
 
-    <% if (stepList.length > 0) { %>
+    <!-- Materiais Necessários -->
+    <div class="bg-yellow-50 rounded-2xl p-6 border border-yellow-100">
+      <h2 class="text-lg font-bold text-yellow-800 mb-3 flex items-center gap-2">🛠️ Materiais Necessários:</h2>
+      <p class="text-slate-700 whitespace-pre-line leading-relaxed"><%= activity.materials %></p>
+    </div>
+
+    <!-- Orientações de Segurança -->
+    <% if (activity.safety) { %>
+      <div class="bg-red-50 rounded-2xl p-6 border border-red-100">
+        <h2 class="text-lg font-bold text-red-800 mb-2 flex items-center gap-2">⚠️ Atenção e Segurança:</h2>
+        <p class="text-slate-700 leading-relaxed"><%= activity.safety %></p>
+      </div>
+    <% } %>
+
+    <!-- Passos de Montagem (IMAGENS GRANDES E EXPLICATIVAS) -->
+    <div class="mt-4">
+      <h2 class="text-2xl font-bold text-slate-800 mb-6 border-b border-slate-100 pb-2">🛠️ Passo a Passo da Montagem</h2>
+      
+      <!-- Layout de Passos Otimizado para Chromebook -->
       <div class="space-y-8">
-        <% stepList.forEach((step, index) => { %>
-          <div class="bg-indigo-50/40 border-2 border-indigo-100 rounded-2xl p-6 shadow-sm flex flex-col md:flex-row gap-6 items-start">
+        <% 
+        const passos = activity.steps.split('\n').filter(p => p.trim() !== '');
+        passos.forEach((passo, index) => { 
+        %>
+          <div class="bg-slate-50 rounded-2xl p-4 sm:p-6 border border-slate-100 flex flex-col md:flex-row gap-6 items-center">
             
-            <% if (step.image) { %>
-              <div class="w-full md:w-3/5 rounded-2xl overflow-hidden border border-slate-200 shadow-md bg-white">
-                <img src="<%= step.image %>" alt="Passo <%= index + 1 %>" class="w-full h-auto max-h-[420px] object-cover">
-              </div>
-            <% } %>
-
-            <div class="flex-1 space-y-3">
-              <div class="bg-indigo-600 text-white font-black text-sm px-4 py-1.5 rounded-xl shadow-sm inline-block">
-                Passo <%= index + 1 %>
-              </div>
-              <p class="text-slate-800 text-xl font-medium leading-relaxed">
-                <%= step.text %>
-              </p>
+            <!-- Imagem do Passo Bem Maior (60% da largura em telas grandes) -->
+            <div class="w-full md:w-3/5 shrink-0 rounded-xl overflow-hidden bg-slate-200 aspect-video shadow-sm">
+              <% if (activity.image) { %>
+                <img src="<%= activity.image %>" class="w-full h-full object-cover" alt="Passo <%= index + 1 %>">
+              <% } else { %>
+                <div class="w-full h-full flex items-center justify-center text-slate-400 text-4xl">🤖 Passo <%= index + 1 %></div>
+              <% } %>
             </div>
-
+            
+            <!-- Descrição ao lado (40%) -->
+            <div class="w-full md:w-2/5">
+              <div class="bg-indigo-600 text-white w-10 h-10 rounded-full flex items-center justify-center text-lg font-black mb-3">
+                <%= index + 1 %>
+              </div>
+              <p class="text-slate-700 text-base leading-relaxed"><%= passo %></p>
+            </div>
+            
           </div>
         <% }) %>
       </div>
-    <% } %>
+    </div>
   </div>
-</article>
+</div>
 
 <%- include('partials/footer') %>

@@ -1,148 +1,64 @@
 <%- include('partials/header') %>
 
-<div class="max-w-4xl mx-auto bg-white rounded-2xl shadow-sm border border-slate-200 p-8 my-6">
-  <h1 class="text-2xl font-extrabold text-slate-900 mb-6">
-    <%= activity ? 'Editar Atividade' : 'Nova Atividade' %>
-  </h1>
-
-  <form action="<%= activity ? '/admin/edit/' + activity.id : '/admin/new' %>" method="POST" enctype="multipart/form-data" class="space-y-6">
+<div class="max-w-2xl mx-auto bg-white p-6 sm:p-8 rounded-3xl shadow-sm border border-slate-100">
+  <h1 class="text-2xl font-bold text-slate-800 mb-6"><%= activity ? '✏️ Editar Atividade' : '🤖 Cadastrar Nova Atividade' %></h1>
+  
+  <form action="<%= activity ? '/admin/edit/' + activity.id : '/admin/new' %>" method="POST" enctype="multipart/form-data" class="space-y-5">
+    
     <% if (activity && activity.image) { %>
       <input type="hidden" name="current_image" value="<%= activity.image %>">
     <% } %>
 
     <div>
-      <label class="block text-sm font-bold text-slate-700 mb-1">Título da Atividade *</label>
-      <input type="text" name="title" required value="<%= activity ? activity.title : '' %>" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500">
+      <label class="block text-slate-700 font-bold mb-2">Título do Projeto:</label>
+      <input type="text" name="title" required value="<%= activity ? activity.title : '' %>" class="w-full px-4 py-2 border border-slate-300 rounded-xl">
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
       <div>
-        <label class="block text-sm font-bold text-slate-700 mb-1">Categoria *</label>
-        <input type="text" name="category" required placeholder="Ex: Robótica, Circuitos" value="<%= activity ? activity.category : '' %>" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500">
-      </div>
-      <div>
-        <label class="block text-sm font-bold text-slate-700 mb-1">Faixa Etária</label>
-        <input type="text" name="age_range" placeholder="Ex: 8 a 12 anos" value="<%= activity ? activity.age_range : '' %>" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500">
+        <label class="block text-slate-700 font-bold mb-2">Categoria:</label>
+        <input type="text" name="category" required value="<%= activity ? activity.category : '' %>" placeholder="Ex: Eletrônica" class="w-full px-4 py-2 border border-slate-300 rounded-xl">
       </div>
       <div>
-        <label class="block text-sm font-bold text-slate-700 mb-1">Tempo Estimado</label>
-        <input type="text" name="duration" placeholder="Ex: 45 min" value="<%= activity ? activity.duration : '' %>" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500">
+        <label class="block text-slate-700 font-bold mb-2">Faixa Etária:</label>
+        <input type="text" name="age_range" value="<%= activity ? activity.age_range : '' %>" placeholder="Ex: 8 a 12 anos" class="w-full px-4 py-2 border border-slate-300 rounded-xl">
+      </div>
+      <div>
+        <label class="block text-slate-700 font-bold mb-2">Duração (Minutos):</label>
+        <input type="text" name="duration" value="<%= activity ? activity.duration : '' %>" placeholder="Ex: 45 min" class="w-full px-4 py-2 border border-slate-300 rounded-xl">
       </div>
     </div>
 
     <div>
-      <label class="block text-sm font-bold text-slate-700 mb-1">Breve Descrição / Objetivo *</label>
-      <textarea name="description" required rows="3" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500"><%= activity ? activity.description : '' %></textarea>
+      <label class="block text-slate-700 font-bold mb-2">Resumo da Atividade:</label>
+      <textarea name="description" rows="3" required class="w-full px-4 py-2 border border-slate-300 rounded-xl"><%= activity ? activity.description : '' %></textarea>
     </div>
 
     <div>
-      <label class="block text-sm font-bold text-slate-700 mb-1">Materiais Necessários *</label>
-      <textarea name="materials" required rows="4" placeholder="Ex:&#10;- 1 Motor DC&#10;- 2 Pilhas AA&#10;- 1 Papelão" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500"><%= activity ? activity.materials : '' %></textarea>
-    </div>
-
-    <!-- SESSÃO DE PASSOS DINÂMICOS -->
-    <div class="border-t border-b border-slate-200 py-6 my-6">
-      <div class="flex justify-between items-center mb-4">
-        <div>
-          <h2 class="text-lg font-bold text-slate-900">Passos da Montagem</h2>
-          <p class="text-xs text-slate-500">Adicione cada etapa individualmente com sua imagem de referência.</p>
-        </div>
-        <button type="button" onclick="addStepField()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold px-4 py-2 rounded-xl transition flex items-center gap-1">
-          + Adicionar Passo
-        </button>
-      </div>
-
-      <div id="steps-container" class="space-y-4"></div>
+      <label class="block text-slate-700 font-bold mb-2">Materiais Necessários (um por linha):</label>
+      <textarea name="materials" rows="4" required placeholder="Ex: 1 Placa Arduino&#10;3 Leds&#10;Cabos jumper" class="w-full px-4 py-2 border border-slate-300 rounded-xl"><%= activity ? activity.materials : '' %></textarea>
     </div>
 
     <div>
-      <label class="block text-sm font-bold text-slate-700 mb-1">Orientações de Segurança</label>
-      <textarea name="safety" rows="2" placeholder="Ex: Utilizar tesoura sem ponta sob supervisão de um adulto." class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500"><%= activity ? activity.safety : '' %></textarea>
+      <label class="block text-slate-700 font-bold mb-2">Instruções de Montagem (uma etapa por linha):</label>
+      <textarea name="steps" rows="5" required placeholder="Ex: Conecte o Led no pino 13&#10;Ligue o cabo USB no computador&#10;Envie o código" class="w-full px-4 py-2 border border-slate-300 rounded-xl"><%= activity ? activity.steps : '' %></textarea>
     </div>
 
     <div>
-      <label class="block text-sm font-bold text-slate-700 mb-1">Imagem Principal (Capa)</label>
-      <% if (activity && activity.image) { %>
-        <div class="mb-2">
-          <img src="<%= activity.image %>" class="w-32 h-32 object-cover rounded-xl border">
-        </div>
-      <% } %>
-      <input type="file" name="image" accept="image/*" class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+      <label class="block text-slate-700 font-bold mb-2">Dicas de Segurança (Opcional):</label>
+      <textarea name="safety" rows="2" class="w-full px-4 py-2 border border-slate-300 rounded-xl"><%= activity ? activity.safety : '' %></textarea>
+    </div>
+
+    <div>
+      <label class="block text-slate-700 font-bold mb-2">Imagem de Capa / Projeto:</label>
+      <input type="file" name="image" class="w-full text-slate-600">
     </div>
 
     <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
-      <a href="/admin" class="px-5 py-2.5 rounded-xl border border-slate-300 text-slate-700 font-bold hover:bg-slate-50 transition">Cancelar</a>
-      <button type="submit" class="bg-indigo-600 text-white font-bold px-6 py-2.5 rounded-xl hover:bg-indigo-700 transition">
-        <%= activity ? 'Salvar Alterações' : 'Cadastrar Atividade' %>
-      </button>
+      <a href="/admin" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-6 py-2.5 rounded-xl transition">Cancelar</a>
+      <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-2.5 rounded-xl transition">Salvar Projeto</button>
     </div>
   </form>
 </div>
-
-<script>
-  let stepIndex = 0;
-  const existingSteps = <%- activity && activity.steps ? JSON.stringify(activity.steps) : '""' %>;
-
-  function addStepField(text = '', image = '') {
-    const container = document.getElementById('steps-container');
-    const currentIndex = stepIndex++;
-
-    const stepCard = document.createElement('div');
-    stepCard.className = "bg-slate-50 border border-slate-200 rounded-2xl p-4 relative space-y-3";
-    stepCard.id = `step-card-${currentIndex}`;
-
-    stepCard.innerHTML = `
-      <div class="flex justify-between items-center border-b border-slate-200 pb-2">
-        <span class="font-extrabold text-indigo-600 text-sm">Passo <span class="step-number"></span></span>
-        <button type="button" onclick="removeStepCard(${currentIndex})" class="text-red-500 hover:text-red-700 text-xs font-bold bg-red-50 hover:bg-red-100 px-2 py-1 rounded-lg">
-          Remover Passo
-        </button>
-      </div>
-
-      <div>
-        <label class="block text-xs font-bold text-slate-600 mb-1">Descrição do Passo</label>
-        <textarea name="step_text" required rows="2" placeholder="Descreva o que deve ser feito nesta etapa..." class="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500">${text}</textarea>
-      </div>
-
-      <div>
-        <label class="block text-xs font-bold text-slate-600 mb-1">Imagem de Referência deste Passo (Opcional)</label>
-        ${image ? `<div class="mb-2"><img src="${image}" class="w-20 h-20 object-cover rounded-lg border"></div>` : ''}
-        <input type="hidden" name="step_existing_image" value="${image}">
-        <input type="file" name="step_image_${currentIndex}" accept="image/*" class="w-full text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700">
-      </div>
-    `;
-
-    container.appendChild(stepCard);
-    updateStepNumbers();
-  }
-
-  function removeStepCard(index) {
-    const card = document.getElementById(`step-card-${index}`);
-    if (card) {
-      card.remove();
-      updateStepNumbers();
-    }
-  }
-
-  function updateStepNumbers() {
-    const cards = document.querySelectorAll('#steps-container .step-number');
-    cards.forEach((span, idx) => {
-      span.innerText = idx + 1;
-    });
-  }
-
-  try {
-    const parsedSteps = JSON.parse(existingSteps);
-    if (Array.isArray(parsedSteps) && parsedSteps.length > 0) {
-      parsedSteps.forEach(s => addStepField(s.text, s.image));
-    } else if (typeof existingSteps === 'string' && existingSteps.trim() !== '') {
-      existingSteps.split('\n').filter(s => s.trim()).forEach(s => addStepField(s, ''));
-    } else {
-      addStepField();
-    }
-  } catch (e) {
-    addStepField();
-  }
-</script>
 
 <%- include('partials/footer') %>

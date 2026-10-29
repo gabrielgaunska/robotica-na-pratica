@@ -1,8 +1,20 @@
 <%- include('partials/header') %>
 
 <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-6 md:p-8 max-w-4xl mx-auto">
+  
+  <!-- BOTÃO PROGRAMAR NO MICROBIT -->
+  <div class="mb-6 flex flex-wrap justify-between items-center gap-4 bg-indigo-50 border border-indigo-100 p-4 rounded-2xl">
+    <div>
+      <h3 class="font-bold text-indigo-900 text-lg">💻 Pronto para programar?</h3>
+      <p class="text-indigo-700 text-sm">Abra o MakeCode e comece a criar o código deste projeto!</p>
+    </div>
+    <a href="<%= activity.makecode_link || 'https://makecode.microbit.org/' %>" target="_blank" class="bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold px-6 py-3 rounded-xl shadow-md transition transform hover:scale-105">
+      Ir para o MakeCode micro:bit 🚀
+    </a>
+  </div>
+
   <div class="flex flex-col gap-6">
-    <!-- Banner Principal -->
+    <!-- Imagem de Capa do Projeto -->
     <div class="w-full h-64 sm:h-96 rounded-2xl overflow-hidden bg-slate-100">
       <% if (activity.image) { %>
         <img src="<%= activity.image %>" class="w-full h-full object-cover" alt="<%= activity.title %>">
@@ -11,68 +23,65 @@
       <% } %>
     </div>
 
-    <!-- Título e Infos -->
+    <!-- Informações do Projeto -->
     <div>
       <span class="bg-indigo-100 text-indigo-800 text-xs font-bold px-3 py-1.5 rounded-full uppercase tracking-wider"><%= activity.category %></span>
       <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-900 mt-3 mb-4"><%= activity.title %></h1>
       
       <div class="flex flex-wrap gap-4 text-sm text-slate-600 border-b border-t border-slate-100 py-4 mb-6">
-        <span class="flex items-center gap-1.5"><strong>👶 Idade Recomendada:</strong> <%= activity.age_range || 'Livre' %></span>
-        <span class="flex items-center gap-1.5"><strong>⏱️ Tempo Estimado:</strong> <%= activity.duration || 'Variável' %></span>
+        <span><strong>👶 Idade:</strong> <%= activity.age_range || 'Livre' %></span>
+        <span><strong>⏱️ Tempo:</strong> <%= activity.duration || 'Variável' %></span>
       </div>
     </div>
 
-    <!-- Descrição e Objetivo -->
+    <!-- Descrição -->
     <div>
       <h2 class="text-xl font-bold text-slate-800 mb-2">Sobre este Projeto</h2>
       <p class="text-slate-600 leading-relaxed"><%= activity.description %></p>
     </div>
 
-    <!-- Materiais Necessários -->
+    <!-- Materiais -->
     <div class="bg-yellow-50 rounded-2xl p-6 border border-yellow-100">
       <h2 class="text-lg font-bold text-yellow-800 mb-3 flex items-center gap-2">🛠️ Materiais Necessários:</h2>
       <p class="text-slate-700 whitespace-pre-line leading-relaxed"><%= activity.materials %></p>
     </div>
 
-    <!-- Orientações de Segurança -->
-    <% if (activity.safety) { %>
-      <div class="bg-red-50 rounded-2xl p-6 border border-red-100">
-        <h2 class="text-lg font-bold text-red-800 mb-2 flex items-center gap-2">⚠️ Atenção e Segurança:</h2>
-        <p class="text-slate-700 leading-relaxed"><%= activity.safety %></p>
-      </div>
-    <% } %>
-
-    <!-- Passos de Montagem (IMAGENS GRANDES E EXPLICATIVAS) -->
+    <!-- Passos de Montagem (CADA UM COM SUA IMAGEM GIGANTE EXCLUSIVA!) -->
     <div class="mt-4">
       <h2 class="text-2xl font-bold text-slate-800 mb-6 border-b border-slate-100 pb-2">🛠️ Passo a Passo da Montagem</h2>
       
-      <!-- Layout de Passos Otimizado para Chromebook -->
       <div class="space-y-8">
         <% 
-        const passos = activity.steps.split('\n').filter(p => p.trim() !== '');
-        passos.forEach((passo, index) => { 
+        try {
+          const passos = JSON.parse(activity.steps);
+          passos.forEach((passo, index) => { 
         %>
-          <div class="bg-slate-50 rounded-2xl p-4 sm:p-6 border border-slate-100 flex flex-col md:flex-row gap-6 items-center">
+          <div class="bg-slate-50 rounded-2xl p-4 sm:p-6 border border-slate-100 flex flex-col gap-4">
             
-            <!-- Imagem do Passo Bem Maior (60% da largura em telas grandes) -->
-            <div class="w-full md:w-3/5 shrink-0 rounded-xl overflow-hidden bg-slate-200 aspect-video shadow-sm">
-              <% if (activity.image) { %>
-                <img src="<%= activity.image %>" class="w-full h-full object-cover" alt="Passo <%= index + 1 %>">
-              <% } else { %>
-                <div class="w-full h-full flex items-center justify-center text-slate-400 text-4xl">🤖 Passo <%= index + 1 %></div>
-              <% } %>
-            </div>
-            
-            <!-- Descrição ao lado (40%) -->
-            <div class="w-full md:w-2/5">
-              <div class="bg-indigo-600 text-white w-10 h-10 rounded-full flex items-center justify-center text-lg font-black mb-3">
+            <div class="flex items-center gap-3">
+              <div class="bg-indigo-600 text-white w-10 h-10 rounded-full flex items-center justify-center text-lg font-black shrink-0">
                 <%= index + 1 %>
               </div>
-              <p class="text-slate-700 text-base leading-relaxed"><%= passo %></p>
+              <p class="text-slate-800 font-bold text-lg">Etapa <%= index + 1 %></p>
             </div>
+
+            <!-- Imagem Gigante de Apoio deste Passo -->
+            <% if (passo.image) { %>
+              <div class="w-full rounded-xl overflow-hidden bg-slate-200 aspect-video shadow-sm">
+                <img src="<%= passo.image %>" class="w-full h-full object-cover" alt="Passo <%= index + 1 %>">
+              </div>
+            <% } %>
+
+            <!-- Texto de Explicacao -->
+            <p class="text-slate-700 text-base leading-relaxed bg-white p-4 rounded-xl border border-slate-100"><%= passo.text %></p>
             
           </div>
-        <% }) %>
+        <% 
+          });
+        } catch(e) { 
+        %>
+          <p class="text-slate-500">Nenhum passo a passo cadastrado.</p>
+        <% } %>
       </div>
     </div>
   </div>

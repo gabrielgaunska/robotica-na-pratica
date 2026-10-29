@@ -1,6 +1,6 @@
 <%- include('partials/header') %>
 
-<div class="max-w-2xl mx-auto bg-white p-6 sm:p-8 rounded-3xl shadow-sm border border-slate-100">
+<div class="max-w-3xl mx-auto bg-white p-6 sm:p-8 rounded-3xl shadow-sm border border-slate-100">
   <h1 class="text-2xl font-bold text-slate-800 mb-6"><%= activity ? '✏️ Editar Atividade' : '🤖 Cadastrar Nova Atividade' %></h1>
   
   <form action="<%= activity ? '/admin/edit/' + activity.id : '/admin/new' %>" method="POST" enctype="multipart/form-data" class="space-y-5">
@@ -11,7 +11,7 @@
 
     <div>
       <label class="block text-slate-700 font-bold mb-2">Título do Projeto:</label>
-      <input type="text" name="title" required value="<%= activity ? activity.title : '' %>" class="w-full px-4 py-2 border border-slate-300 rounded-xl">
+      <input type="text" name="title" required value="<%= activity ? activity.title : '' %>" class="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500">
     </div>
 
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -20,7 +20,7 @@
         <input type="text" name="category" required value="<%= activity ? activity.category : '' %>" placeholder="Ex: Eletrônica" class="w-full px-4 py-2 border border-slate-300 rounded-xl">
       </div>
       <div>
-        <label class="block text-slate-700 font-bold mb-2">Faixa Etária:</label>
+        <label class="block text-slate-700 font-bold mb-2">Idade Recomendada:</label>
         <input type="text" name="age_range" value="<%= activity ? activity.age_range : '' %>" placeholder="Ex: 8 a 12 anos" class="w-full px-4 py-2 border border-slate-300 rounded-xl">
       </div>
       <div>
@@ -30,18 +30,18 @@
     </div>
 
     <div>
+      <label class="block text-slate-700 font-bold mb-2">Link do MakeCode / Micro:bit (Opcional):</label>
+      <input type="url" name="makecode_link" value="<%= activity ? activity.makecode_link : 'https://makecode.microbit.org/' %>" class="w-full px-4 py-2 border border-slate-300 rounded-xl text-blue-600 font-semibold">
+    </div>
+
+    <div>
       <label class="block text-slate-700 font-bold mb-2">Resumo da Atividade:</label>
       <textarea name="description" rows="3" required class="w-full px-4 py-2 border border-slate-300 rounded-xl"><%= activity ? activity.description : '' %></textarea>
     </div>
 
     <div>
       <label class="block text-slate-700 font-bold mb-2">Materiais Necessários (um por linha):</label>
-      <textarea name="materials" rows="4" required placeholder="Ex: 1 Placa Arduino&#10;3 Leds&#10;Cabos jumper" class="w-full px-4 py-2 border border-slate-300 rounded-xl"><%= activity ? activity.materials : '' %></textarea>
-    </div>
-
-    <div>
-      <label class="block text-slate-700 font-bold mb-2">Instruções de Montagem (uma etapa por linha):</label>
-      <textarea name="steps" rows="5" required placeholder="Ex: Conecte o Led no pino 13&#10;Ligue o cabo USB no computador&#10;Envie o código" class="w-full px-4 py-2 border border-slate-300 rounded-xl"><%= activity ? activity.steps : '' %></textarea>
+      <textarea name="materials" rows="4" required placeholder="Ex: 1 Placa micro:bit&#10;1 Cabo USB" class="w-full px-4 py-2 border border-slate-300 rounded-xl"><%= activity ? activity.materials : '' %></textarea>
     </div>
 
     <div>
@@ -50,15 +50,73 @@
     </div>
 
     <div>
-      <label class="block text-slate-700 font-bold mb-2">Imagem de Capa / Projeto:</label>
+      <label class="block text-slate-700 font-bold mb-2">Imagem de Capa do Projeto:</label>
       <input type="file" name="image" class="w-full text-slate-600">
     </div>
 
-    <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
+    <!-- SEÇÃO PASSO A PASSO DINÂMICO -->
+    <div class="border-t border-slate-200 pt-6">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-xl font-bold text-slate-800">🛠️ Etapas do Passo a Passo</h3>
+        <button type="button" onclick="addStep()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold px-4 py-2 rounded-xl transition shadow-sm">
+          + Adicionar Passo
+        </button>
+      </div>
+
+      <div id="steps-container" class="space-y-4">
+        <% 
+        let stepCount = 0;
+        if (activity && activity.steps) {
+          try {
+            const passos = JSON.parse(activity.steps);
+            passos.forEach((passo, index) => {
+              stepCount++;
+        %>
+          <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 relative step-item" id="step-<%= index %>">
+            <h4 class="font-bold text-slate-700 mb-2">Passo <%= index + 1 %></h4>
+            <textarea name="step_texts" rows="2" class="w-full px-4 py-2 border border-slate-300 rounded-xl mb-2" required><%= passo.text %></textarea>
+            <input type="hidden" name="current_step_images" value="<%= passo.image %>">
+            <input type="file" name="step_image_<%= index %>" class="w-full text-slate-600">
+            <% if (passo.image) { %>
+              <p class="text-xs text-green-600 mt-1">Imagem existente cadastrada.</p>
+            <% } %>
+          </div>
+        <% 
+            });
+          } catch(e) {}
+        } 
+        %>
+      </div>
+    </div>
+
+    <div class="flex justify-end gap-3 pt-6 border-t border-slate-200">
       <a href="/admin" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-6 py-2.5 rounded-xl transition">Cancelar</a>
       <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-2.5 rounded-xl transition">Salvar Projeto</button>
     </div>
   </form>
 </div>
+
+<script>
+  let stepIndex = <%= stepCount %>;
+
+  function addStep() {
+    const container = document.getElementById('steps-container');
+    const div = document.createElement('div');
+    div.className = 'bg-slate-50 p-4 rounded-2xl border border-slate-200 step-item';
+    div.id = `step-${stepIndex}`;
+    div.innerHTML = `
+      <h4 class="font-bold text-slate-700 mb-2">Passo ${stepIndex + 1}</h4>
+      <textarea name="step_texts" rows="2" placeholder="Descreva o que fazer nesta etapa..." class="w-full px-4 py-2 border border-slate-300 rounded-xl mb-2" required></textarea>
+      <input type="file" name="step_image_${stepIndex}" class="w-full text-slate-600" required>
+    `;
+    container.appendChild(div);
+    stepIndex++;
+  }
+
+  // Adicionar um passo inicial caso esteja criando um novo projeto do zero
+  if (stepIndex === 0) {
+    addStep();
+  }
+</script>
 
 <%- include('partials/footer') %>

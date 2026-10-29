@@ -10,11 +10,17 @@ const PORT = process.env.PORT || 3000;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
 const SESSION_SECRET = process.env.SESSION_SECRET || 'robotica_secret_key';
 
+// Definir diretório seguro para o Hostless ou ambiente local
 const dataDir = process.env.NODE_ENV === 'production' ? '/tmp/robotica-data' : path.join(__dirname, 'data');
 const uploadDir = path.join(__dirname, 'public/uploads');
 
-if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
-if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+// Criar pastas com recursive: true para evitar erros se o diretório pai não existir
+try {
+  if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
+  if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+} catch (e) {
+  console.error('Aviso ao criar diretórios:', e.message);
+}
 
 const dbFile = path.join(dataDir, 'database.db');
 const db = new sqlite3.Database(dbFile, (err) => {
@@ -156,7 +162,6 @@ app.post('/admin/delete/:id', requireAuth, (req, res) => {
   db.run('DELETE FROM activities WHERE id = ?', [req.params.id], () => res.redirect('/admin'));
 });
 
-// O '0.0.0.0' garante que o Hostless consegue acessar o servidor sem derrubá-lo
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Portal de robótica rodando na porta ${PORT}`);
 });

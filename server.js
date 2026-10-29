@@ -1,6 +1,5 @@
 const express = require('express');
 const session = require('express-session');
-const sqlite3 = require('sqlite3').verbose();
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
@@ -10,45 +9,109 @@ const PORT = process.env.PORT || 3000;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
 const SESSION_SECRET = process.env.SESSION_SECRET || 'robotica_secret_key';
 
-// Definir diretório seguro para o Hostless ou ambiente local
 const dataDir = process.env.NODE_ENV === 'production' ? '/tmp/robotica-data' : path.join(__dirname, 'data');
 const uploadDir = path.join(__dirname, 'public/uploads');
 
-// Criar pastas com recursive: true para evitar erros se o diretório pai não existir
-try {
-  if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
-  if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
-} catch (e) {
-  console.error('Aviso ao criar diretórios:', e.message);
-}
+if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
+if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 
-const dbFile = path.join(dataDir, 'database.db');
-const db = new sqlite3.Database(dbFile, (err) => {
-  if (err) {
-    console.error('Erro ao abrir o banco de dados:', err.message);
-  } else {
-    console.log('Conectado ao banco de dados SQLite.');
-    initDb();
+// BANCO DE DADOS EM JAVASCRIPT PURO (Sem compilação C++, leve e rápido)
+const dbFile = path.join(dataDir, 'database.json');
+
+class JSONDatabase {
+  constructor(filePath) {
+    this.filePath = filePath;
+    if (!fs.existsSync(this.filePath)) {
+      fs.writeFileSync(this.filePath, JSON.stringify([]));
+    }
   }
-});
 
-function initDb() {
-  db.run(`
-    CREATE TABLE IF NOT EXISTS activities (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      title TEXT NOT NULL,
-      description TEXT NOT NULL,
-      category TEXT NOT NULL,
-      age_range TEXT,
-      duration TEXT,
-      materials TEXT NOT NULL,
-      steps TEXT NOT NULL,
-      safety TEXT,
-      image TEXT,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-  `);
+  read() {
+    try {
+      return JSON.parse(fs.readFileSync(this.filePath, 'utf8'));
+    } catch (e) {
+      return [];
+    }
+  }
+
+  write(data) {
+    fs.writeFileSync(this.filePath, JSON.stringify(data, null, 2));
+  }
+
+  run(query, params, callback) {
+    const data = this.read();
+    
+    if (query.trim().startsWith('INSERT INTO')) {
+      const [title, description, category, age_range, duration, materials, stepsJson, safety, image] = params;
+      const newId = data.length > 0 ? Math.max(...data.map(item => item.id)) + 1 : 1;
+      const newItem = {
+        id: newId,
+        title,
+        description,
+        category,
+        age_range,
+        duration,
+        materials,
+        steps: stepsJson,
+        safety,
+        image,
+        created_at: new Date().toISOString()
+      };
+      data.push(newItem);
+      this.write(data);
+      if (callback) callback(null);
+      return;
+    }
+
+    if (query.trim().startsWith('UPDATE')) {
+      const [title, description, category, age_range, duration, materials, stepsJson, safety, image, id] = params;
+      const index = data.findIndex(item => item.id === parseInt(id));
+      if (index !== -1) {
+        data[index] = {
+          ...data[index],
+          title,
+          description,
+          category,
+          age_range,
+          duration,
+          materials,
+          steps: stepsJson,
+          safety,
+          image
+        };
+        this.write(data);
+      }
+      if (callback) callback(null);
+      return;
+    }
+
+    if (query.trim().startsWith('DELETE')) {
+      const id = parseInt(params[0]);
+      const filtered = data.filter(item => item.id !== id);
+      this.write(filtered);
+      if (callback) callback(null);
+      return;
+    }
+
+    if (callback) callback(null);
+  }
+
+  all(query, params, callback) {
+    const data = this.read();
+    data.sort((a, b) => b.id - a.id);
+    if (callback) callback(null, data);
+  }
+
+  get(query, params, callback) {
+    const data = this.read();
+    const id = parseInt(params[0]);
+    const item = data.find(it => it.id === id);
+    if (callback) callback(null, item || null);
+  }
 }
+
+const db = new JSONDatabase(dbFile);
+console.log('Banco de dados JSON inicializado com sucesso.');
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, uploadDir),

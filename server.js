@@ -10,8 +10,10 @@ const PORT = process.env.PORT || 3000;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
 const SESSION_SECRET = process.env.SESSION_SECRET || 'robotica_secret_key';
 
-const dataDir = path.join(__dirname, 'data');
+// Ajuste para o Hostless: se estiver em produção, usa /tmp para evitar erro de permissão
+const dataDir = process.env.NODE_ENV === 'production' ? '/tmp/robotica-data' : path.join(__dirname, 'data');
 const uploadDir = path.join(__dirname, 'public/uploads');
+
 if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 

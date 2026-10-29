@@ -10,7 +10,6 @@ const PORT = process.env.PORT || 3000;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
 const SESSION_SECRET = process.env.SESSION_SECRET || 'robotica_secret_key';
 
-// Ajuste para o Hostless: se estiver em produção, usa /tmp para evitar erro de permissão
 const dataDir = process.env.NODE_ENV === 'production' ? '/tmp/robotica-data' : path.join(__dirname, 'data');
 const uploadDir = path.join(__dirname, 'public/uploads');
 
@@ -157,4 +156,7 @@ app.post('/admin/delete/:id', requireAuth, (req, res) => {
   db.run('DELETE FROM activities WHERE id = ?', [req.params.id], () => res.redirect('/admin'));
 });
 
-app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
+// O '0.0.0.0' garante que o Hostless consegue acessar o servidor sem derrubá-lo
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Portal de robótica rodando na porta ${PORT}`);
+});

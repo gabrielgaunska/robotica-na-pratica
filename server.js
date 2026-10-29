@@ -9,9 +9,11 @@ const PORT = process.env.PORT || 3000;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
 const SESSION_SECRET = process.env.SESSION_SECRET || 'robotica_secret_key';
 
-const dataDir = process.env.NODE_ENV === 'production' ? '/tmp/robotica-data' : path.join(__dirname, 'data');
-const uploadDir = path.join(__dirname, 'public/uploads');
+// Armazenamento garantido e persistente na pasta livre /tmp do sistema
+const dataDir = '/tmp/robotica-data';
+const uploadDir = '/tmp/robotica-uploads';
 
+// Criando as pastas com permissão total garantida
 if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 
@@ -111,7 +113,7 @@ class JSONDatabase {
 }
 
 const db = new JSONDatabase(dbFile);
-console.log('Banco de dados JSON inicializado com sucesso.');
+console.log('Banco de dados JSON inicializado na pasta temporária segura.');
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, uploadDir),
@@ -125,7 +127,11 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+
+// Servindo arquivos estáticos e mapeando uploads da pasta /tmp de forma inteligente
 app.use(express.static(path.join(__dirname, 'public')));
+app.use('/uploads', express.static(uploadDir));
+
 app.use(session({ secret: SESSION_SECRET, resave: false, saveUninitialized: false }));
 
 function requireAuth(req, res, next) {
